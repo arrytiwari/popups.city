@@ -1,15 +1,48 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Twitter, MessageCircle, Github, MapPin, Calendar, Users, Zap } from "lucide-react"
+import { Twitter, MessageCircle, Github } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useRef } from "react"
+import Image from "next/image"
 
 export default function PopupDirectory() {
+  const marqueeRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const marquee = marqueeRef.current
+    if (!marquee) return
+
+    let animationId: number
+    let position = 0
+    const speed = 0.5
+
+    const animate = () => {
+      position -= speed
+      if (position <= -marquee.scrollWidth / 2) {
+        position = 0
+      }
+      marquee.style.transform = `translateX(${position}px)`
+      animationId = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId)
+      }
+    }
+  }, [])
+
   const popupVillages = [
     {
       title: "Edge Esmeralda",
+      
       location: "Austin, USA",
       dates: "2 Oct-Nov - 30 April",
       description: "This is a one line description that talks about the project and their ideals.",
@@ -73,22 +106,37 @@ export default function PopupDirectory() {
     },
   ]
 
-  const marqueeItems = [
-    { name: "Edge City", icon: Users },
-    { name: "Zuzalu", icon: Zap },
-    { name: "Jangada", icon: MapPin },
-    { name: "Zuzamos", icon: Calendar },
+  const marqueePhotos = [
+    {
+      name: "Aldeia do Crescimento",
+       image: "/mark/crecimiento.jpg",
+      rotation: "-2deg",
+    },
+    {
+      name: "Edge City",
+      image: "/mark/crecimiento.jpg",
+      rotation: "1deg",
+    },
+    {
+      name: "Infinita City",
+      image: "/mark/crecimiento.jpg",
+      rotation: "-1deg",
+    },
+    {
+      name: "Edge City",
+      image: "/mark/crecimiento.png",
+      rotation: "2deg",
+    },
   ]
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section with Gradient Background */}
-      <div className="relative bg-gradient-to-br from-orange-400 via-pink-400 via-blue-400 to-purple-600 text-white">
+      {/* Hero Section with Corrected Gradient Background */}
+      <div className="relative bg-gradient-to-br from-yellow-400 via-orange-400 via-pink-400 via-purple-400 to-blue-500 text-white">
         {/* Navigation */}
         <nav className="flex items-center justify-between p-4 md:p-6">
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-white rounded-full"></div>
-            <div className="w-2 h-2 bg-white rounded-full"></div>
+            <Image src="/logo.svg" alt="popup.city" width={32} height={32} />
             <span className="font-medium ml-2">popup.city</span>
           </div>
           <div className="flex items-center space-x-4">
@@ -221,19 +269,35 @@ export default function PopupDirectory() {
         </div>
       </div>
 
-      {/* Marquee Section */}
-      <div className="bg-gray-50 py-8 overflow-hidden">
-        <div className="flex animate-marquee space-x-6">
-          {[...marqueeItems, ...marqueeItems, ...marqueeItems].map((item, index) => (
-            <div key={index} className="flex-shrink-0">
-              <Card className="w-64 h-32 bg-black text-white flex items-center justify-center">
-                <CardContent className="p-6 text-center">
-                  <item.icon className="w-6 h-6 mx-auto mb-2" />
-                  <h3 className="font-medium">{item.name}</h3>
-                </CardContent>
-              </Card>
-            </div>
-          ))}
+      {/* JavaScript Marquee Section with Tilted Photos */}
+      <div className="bg-gray-50 py-16 overflow-hidden">
+        <div className="relative">
+          <div ref={marqueeRef} className="flex space-x-8 will-change-transform" style={{ width: "calc(200% + 2rem)" }}>
+            {[...marqueePhotos, ...marqueePhotos].map((photo, index) => (
+              <div
+                key={index}
+                className="flex-shrink-0 transform transition-transform hover:scale-105"
+                style={{
+                  transform: `rotate(${photo.rotation})`,
+                  transformOrigin: "center center",
+                }}
+              >
+                <div className="bg-white rounded-lg shadow-lg overflow-hidden w-80 h-64">
+                  <div className="relative h-48">
+                    <Image src={photo.image || "/placeholder.svg"} alt={photo.name} fill className="object-cover" />
+                  </div>
+                  <div className="p-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                      <span className="font-medium text-gray-800">{photo.name}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
