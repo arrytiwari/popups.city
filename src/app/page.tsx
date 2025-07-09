@@ -7,20 +7,29 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Twitter, MessageCircle, Github } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
+import { supabase } from "@/lib/supabaseClient"
+
+const LOCATIONS = [
+  "All",
+  "Forest Island, Malaysia",
+  "Fumba Town, Tanzania",
+  "Austin, USA",
+  "Other"
+];
 
 export default function PopupDirectory() {
   const marqueeRef = useRef<HTMLDivElement>(null)
+  const [popupVillages, setPopupVillages] = useState<any[]>([])
+  const [locationFilter, setLocationFilter] = useState("All");
 
   useEffect(() => {
     const marquee = marqueeRef.current
     if (!marquee) return
-
     let animationId: number
     let position = 0
     const speed = 0.5
-
     const animate = () => {
       position -= speed
       if (position <= -marquee.scrollWidth / 2) {
@@ -29,9 +38,7 @@ export default function PopupDirectory() {
       marquee.style.transform = `translateX(${position}px)`
       animationId = requestAnimationFrame(animate)
     }
-
     animate()
-
     return () => {
       if (animationId) {
         cancelAnimationFrame(animationId)
@@ -39,93 +46,62 @@ export default function PopupDirectory() {
     }
   }, [])
 
-  const popupVillages = [
-    {
-      title: "Edge Esmeralda",
-      
-      location: "Austin, USA",
-      dates: "2 Oct-Nov - 30 April",
-      description: "This is a one line description that talks about the project and their ideals.",
-      status: "active",
-    },
-    {
-      title: "Zuzanna",
-      location: "Austin, USA",
-      dates: "2 Oct-Nov - 30 April",
-      description: "This is a one line description that talks about the project and their ideals.",
-      status: "build",
-    },
-    {
-      title: "Zulu City",
-      location: "Austin, USA",
-      dates: "2 Oct-Nov - 30 April",
-      description: "This is a one line description that talks about the project and their ideals.",
-      status: "active",
-    },
-    {
-      title: "Zanzalu",
-      location: "Austin, USA",
-      dates: "2 Oct-Nov - 30 April",
-      description: "This is a one line description that talks about the project and their ideals.",
-      status: "build",
-    },
-    {
-      title: "Aleph Crescimento",
-      location: "Austin, USA",
-      dates: "2 Oct-Nov - 30 April",
-      description: "This is a one line description that talks about the project and their ideals.",
-      status: "active",
-    },
-    {
-      title: "Edge Austin",
-      location: "Austin, USA",
-      dates: "2 Oct-Nov - 30 April",
-      description: "This is a one line description that talks about the project and their ideals.",
-      status: "build",
-    },
-    {
-      title: "Zubera",
-      location: "Austin, USA",
-      dates: "2 Oct-Nov - 30 April",
-      description: "This is a one line description that talks about the project and their ideals.",
-      status: "active",
-    },
-    {
-      title: "Longevity",
-      location: "Austin, USA",
-      dates: "2 Oct-Nov - 30 April",
-      description: "This is a one line description that talks about the project and their ideals.",
-      status: "build",
-    },
-    {
-      title: "Burning Zuzalu",
-      location: "Austin, USA",
-      dates: "2 Oct-Nov - 30 April",
-      description: "This is a one line description that talks about the project and their ideals.",
-      status: "active",
-    },
-  ]
+  useEffect(() => {
+    const fetchVillages = async () => {
+      let query = supabase
+        .from("popupVillages")
+        .select("*")
+        .eq("status", "accepted")
+        .order("created_at", { ascending: false });
+      if (locationFilter !== "All") {
+        query = query.eq("location", locationFilter);
+      }
+      const { data, error } = await query;
+      if (error) {
+        console.error("Error fetching villages:", error)
+      }
+      setPopupVillages(data || [])
+    }
+    fetchVillages()
+  }, [locationFilter])
+
+  // Helper to determine status
+  function getPopupStatus(start: string, end: string) {
+    const now = new Date();
+    const startDate = start ? new Date(start) : null;
+    const endDate = end ? new Date(end) : null;
+    if (startDate && endDate) {
+      if (now >= startDate && now <= endDate) return "Ongoing";
+      if (now < startDate) return "Coming Soon";
+      if (now > endDate) return "Ended";
+    }
+    return "";
+  }
 
   const marqueePhotos = [
     {
       name: "Aldeia do Crescimento",
-       image: "/mark/crecimiento.jpg",
+      image: "/mark/crecimiento.jpg",
       rotation: "-2deg",
+      logo:"/logo/crecimientologo.jpg"
     },
     {
       name: "Edge City",
-      image: "/mark/crecimiento.jpg",
+      image: "/mark/edgecity.jpg",
       rotation: "1deg",
+      logo:"/logo/edgelogo.jpg"
     },
     {
       name: "Infinita City",
-      image: "/mark/crecimiento.jpg",
+      image: "/mark/infinitacity.jpg",
       rotation: "-1deg",
+      logo:"/logo/infinitalogo.jpg"
     },
     {
-      name: "Edge City",
-      image: "/mark/crecimiento.png",
+      name: "Zanzalu",
+      image: "/mark/zanzalu.jpg",
       rotation: "2deg",
+      logo:"/logo/zanzalulogo.jpg"
     },
   ]
 
@@ -181,42 +157,22 @@ export default function PopupDirectory() {
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-wrap">
               <span className="text-sm text-gray-600">filters:</span>
-              <Select defaultValue="location">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="location">location</SelectItem>
-                  <SelectItem value="global">global</SelectItem>
-                  <SelectItem value="asia">asia</SelectItem>
-                  <SelectItem value="europe">europe</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select defaultValue="dates">
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="dates" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dates">dates</SelectItem>
-                  <SelectItem value="upcoming">upcoming</SelectItem>
-                  <SelectItem value="ongoing">ongoing</SelectItem>
-                </SelectContent>
-              </Select>
-              <div className="flex items-center">
-                <input type="checkbox" id="ongoing" className="mr-2" />
-                <label htmlFor="ongoing" className="text-sm">
-                  hide ongoing popups
-                </label>
-              </div>
+              <select
+                className="border p-2 rounded"
+                value={locationFilter}
+                onChange={e => setLocationFilter(e.target.value)}
+                title="Select location"
+              >
+                {LOCATIONS.map(loc => (
+                  <option key={loc}>{loc}</option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">19 results</span>
-              <Button variant="ghost" size="sm" className="text-sm">
-                reset
-              </Button>
+              <span className="text-sm text-gray-600">{popupVillages.length} results</span>
+              <Button variant="ghost" size="sm" className="text-sm" onClick={() => setLocationFilter("All")}>reset</Button>
             </div>
           </div>
-
           {/* Theme Tags */}
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="text-sm text-gray-600">themes:</span>
@@ -239,27 +195,42 @@ export default function PopupDirectory() {
       {/* Main Content Grid - 3x3 Layout */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {popupVillages.map((village, index) => (
-            <Card key={index} className="overflow-hidden group hover:shadow-lg transition-shadow">
-              <div className="relative">
-                <div className="w-full h-48 bg-gray-200"></div>
-                <Badge
-                  className={`absolute top-4 right-4 ${
-                    village.status === "active" ? "bg-white text-gray-700" : "bg-blue-500 text-white"
-                  }`}
-                >
-                  {village.status}
-                </Badge>
-              </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-2">{village.title}</h3>
-                <div className="text-sm text-gray-600 mb-3">
-                  {village.location} • {village.dates}
+          {popupVillages.map((village, index) => {
+            const statusLabel = getPopupStatus(village.start_date, village.end_date);
+            return (
+              <Card key={index} className="overflow-hidden group hover:shadow-lg transition-shadow">
+                <div className="relative">
+                  <div className="w-full h-48 bg-gray-200">
+                    {village.image_url && (
+                      <img src={village.image_url} alt={village.name || village.title} className="w-full h-full object-cover" />
+                    )}
+                    {statusLabel && (
+                      <Badge className="absolute top-4 right-4 bg-white text-gray-700">
+                        {statusLabel}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <p className="text-gray-700 text-sm leading-relaxed">{village.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-lg">{village.name || village.title}</h3>
+                    {village.link && (
+                      <a href={village.link} target="_blank" rel="noopener noreferrer" className="ml-1" title="Visit page">
+                        <span aria-label="arrow" role="img">↗️</span>
+                      </a>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-600 mb-1">
+                    {village.location}
+                    {village.start_date && village.end_date && (
+                      <> • {statusLabel} - {new Date(village.end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</>
+                    )}
+                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed mb-1">{village.description}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Continue Exploring Section */}
@@ -288,9 +259,7 @@ export default function PopupDirectory() {
                   </div>
                   <div className="p-4 flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
+                     <Image src={photo.logo || "/placeholder.svg"} alt={photo.name} width={24} height={24} /> 
                       <span className="font-medium text-gray-800">{photo.name}</span>
                     </div>
                   </div>
