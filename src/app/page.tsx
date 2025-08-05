@@ -116,7 +116,7 @@ export default function PopupDirectory() {
             <span className="font-medium ml-2">popup.city</span>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="hidden md:inline text-sm opacity-80">want a new popup?</span>
+            <Link href="/add-popup-village" className="hidden md:inline text-sm opacity-80">want a new popup?</Link>
             <div className="flex space-x-2">
               <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
                 <Twitter className="w-4 h-4" />
@@ -234,10 +234,10 @@ export default function PopupDirectory() {
         </div>
 
         {/* Continue Exploring Section */}
-        <div className="text-center mb-16">
+        {/* <div className="text-center mb-16">
           <p className="text-gray-600 mb-4">continue exploring popup villages</p>
           <Button className="bg-blue-500 hover:bg-blue-600 text-white px-8">see all</Button>
-        </div>
+        </div> */}
       </div>
 
       {/* JavaScript Marquee Section with Tilted Photos */}

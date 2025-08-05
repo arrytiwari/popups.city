@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-const ADMIN_PASSWORD = "your_admin_password"; // Change this!
+const ADMIN_PASSWORD = "1234"; // Change this!
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
